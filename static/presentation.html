@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIH 2026 Presentation | Intelligent Land Record Digitization & Validation System</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #0b0f19; color: #f8fafc; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    
+    .slide {
+      display: none;
+      min-height: 85vh;
+      animation: fadeIn 0.3s ease-in-out forwards;
+    }
+    .slide.active {
+      display: flex;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media print {
+      body { background-color: #fff !important; color: #000 !important; }
+      .no-print { display: none !important; }
+      .slide { display: flex !important; page-break-after: always; min-height: 98vh; }
+    }
+  </style>
+</head>
+<body class="h-screen flex flex-col justify-between overflow-hidden select-none">
+
+  <!-- TOP BAR (Presentation Controls) -->
+  <header class="bg-slate-900/90 border-b border-slate-800 px-6 py-3 flex items-center justify-between no-print z-50 flex-none">
+    <div class="flex items-center space-x-3">
+      <a href="/" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs flex items-center space-x-1.5 transition">
+        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+        <span>Live App</span>
+      </a>
+      <span class="text-xs text-amber-400 font-bold tracking-wider uppercase">SMART INDIA HACKATHON 2026</span>
+      <span class="text-xs text-slate-500">•</span>
+      <span class="text-xs text-slate-300">Intelligent Land Record Digitization</span>
+    </div>
+
+    <div class="flex items-center space-x-3">
+      <!-- Slide Indicator -->
+      <span class="text-xs font-semibold text-slate-400 mono">
+        Slide <b id="current-slide-num" class="text-white">1</b> of 8
+      </span>
+
+      <!-- Navigation buttons -->
+      <div class="flex items-center space-x-1">
+        <button onclick="prevSlide()" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white transition">
+          <i data-lucide="chevron-left" class="w-4 h-4"></i>
+        </button>
+        <button onclick="nextSlide()" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white transition">
+          <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <button onclick="window.print()" class="px-3 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center space-x-1.5 transition">
+        <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+        <span>Print / PDF</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- SLIDES WRAPPER -->
+  <main class="flex-1 flex items-center justify-center p-4 md:p-8 overflow-y-auto">
+    
+    <!-- SLIDE 1: TITLE PAGE -->
+    <div class="slide active w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-3xl p-10 md:p-14 shadow-2xl flex-col justify-between">
+      <div class="space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+          <span class="text-sm font-black tracking-widest text-amber-500 uppercase">SMART INDIA HACKATHON 2026</span>
+          <span class="text-xs text-slate-400 mono">TITLE PAGE</span>
+        </div>
+        <div class="py-6 space-y-3">
+          <span class="text-xs font-bold px-3 py-1 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 uppercase">Software Category</span>
+          <h1 class="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight">
+            Intelligent Land Record Digitization and Validation System
+          </h1>
+          <p class="text-base text-slate-400 max-w-3xl">
+            Multilingual OCR, Adaptive 50+ Year Human-in-the-Loop Forensics, Tamper-Evident Base-30 Security Stamping, and Spatial GIS Cadastral Integration.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-950/60 p-6 rounded-2xl border border-slate-800/80 text-xs">
+        <div class="space-y-2">
+          <div><b class="text-slate-400">Problem Statement ID:</b> <span class="text-white mono font-bold">SIH-2026-PS-1682</span></div>
+          <div><b class="text-slate-400">Theme:</b> <span class="text-white">Smart Governance & Land Administration</span></div>
+          <div><b class="text-slate-400">PS Category:</b> <span class="text-emerald-400 font-bold">Software</span></div>
+        </div>
+        <div class="space-y-2">
+          <div><b class="text-slate-400">Team ID:</b> <span class="text-white mono font-bold">SIH-TN-TEAM-409</span></div>
+          <div><b class="text-slate-400">Pipeline:</b> <span class="text-amber-400 font-bold mono">SCAN • CHECK • VERIFY • MAP</span></div>
+          <div><b class="text-slate-400">Officers / Team:</b> <span class="text-white">Inba Ilakiyan & Team</span></div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-6 text-xs text-slate-500 border-t border-slate-800">
+        <span>SIH 2026</span>
+        <span class="mono">1</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: 01 / PROBLEM -->
+    <div class="slide w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-3xl p-10 md:p-14 shadow-2xl flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <span class="text-xs font-bold text-amber-500 uppercase tracking-widest">SMART INDIA HACKATHON 2026</span>
+          <span class="text-xs text-slate-400 mono">01 / PROBLEM</span>
+        </div>
+        <div class="py-6 space-y-2">
+          <h2 class="text-2xl md:text-4xl font-black text-white">
+            Legacy land records are difficult to digitize and verify
+          </h2>
+          <p class="text-sm text-slate-400">
+            The challenge is not simply scanning paper — it is reliably understanding, validating and locating what the record represents.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div class="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2">
+            <div class="flex items-center space-x-2 text-rose-400 font-bold text-sm">
+              <i data-lucide="file-warning" class="w-4 h-4"></i>
+              <span>DEGRADED RECORDS</span>
+            </div>
+            <p class="text-xs text-slate-400">Old registers may be faded, physically damaged, brittle or incomplete with missing margins.</p>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2">
+            <div class="flex items-center space-x-2 text-amber-400 font-bold text-sm">
+              <i data-lucide="languages" class="w-4 h-4"></i>
+              <span>HANDWRITTEN / REGIONAL</span>
+            </div>
+            <p class="text-xs text-slate-400">Complex regional scripts (Tamil, Marathi, Hindi) and varied cursive handwriting sharply reduce OCR accuracy.</p>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2">
+            <div class="flex items-center space-x-2 text-blue-400 font-bold text-sm">
+              <i data-lucide="clock" class="w-4 h-4"></i>
+              <span>MANUAL VERIFICATION</span>
+            </div>
+            <p class="text-xs text-slate-400">Revenue officers spend overwhelming hours manually comparing physical ledgers and re-typing records.</p>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2">
+            <div class="flex items-center space-x-2 text-indigo-400 font-bold text-sm">
+              <i data-lucide="map" class="w-4 h-4"></i>
+              <span>MISSING SPATIAL LINK</span>
+            </div>
+            <p class="text-xs text-slate-400">Textual records (Chitta/Patta) and cadastral field maps (FMB) remain disconnected, creating fraud vectors.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-xl bg-red-950/30 border border-red-900/50 text-xs text-red-200 mt-6 flex items-center justify-between">
+        <span><b>Result:</b> slow processing • uncertain data • difficult public access • higher verification effort</span>
+        <span class="mono text-slate-400">2</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: 02 / PROPOSED SOLUTION -->
+    <div class="slide w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-3xl p-10 md:p-14 shadow-2xl flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <span class="text-xs font-bold text-amber-500 uppercase tracking-widest">SMART INDIA HACKATHON 2026</span>
+          <span class="text-xs text-slate-400 mono">02 / PROPOSED SOLUTION</span>
+        </div>
+        <div class="py-6 space-y-2">
+          <h2 class="text-2xl md:text-4xl font-black text-white">
+            AI-assisted Patta digitization with human control
+          </h2>
+          <p class="text-sm text-slate-400">
+            A single unified workflow that dynamically adapts to the age and condition of the document.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 mt-4">
+          <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+            <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center">1</span>
+            <h4 class="font-bold text-sm text-white">OFFICIAL SCAN</h4>
+            <p class="text-xs text-slate-400">Only authorized documentation officers scan legacy physical records using local edge equipment.</p>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+            <span class="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center">2</span>
+            <h4 class="font-bold text-sm text-white">LOCAL AI</h4>
+            <p class="text-xs text-slate-400">A local AI model processes the scan and produces a structured digital document in real-time.</p>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+            <span class="w-6 h-6 rounded-full bg-amber-600 text-white font-bold text-xs flex items-center justify-center">3</span>
+            <h4 class="font-bold text-sm text-white">VALIDATE</h4>
+            <p class="text-xs text-slate-400">AI checks fields against historical statutory records and flags missing or uncertain content.</p>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+            <span class="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center">4</span>
+            <h4 class="font-bold text-sm text-white">HUMAN REVIEW</h4>
+            <p class="text-xs text-slate-400">Names, places, areas and ambiguous legal facts remain strictly under officer control.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 mt-6 flex items-center justify-between">
+        <span><b>Guiding Principle:</b> AI handles pattern recognition and repetitive work — humans retain authority over legal identity and ambiguous facts.</span>
+        <span class="mono text-slate-400">3</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: 03 / ADAPTIVE PROCESSING -->
+    <div class="slide w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-3xl p-10 md:p-14 shadow-2xl flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <span class="text-xs font-bold text-amber-500 uppercase tracking-widest">SMART INDIA HACKATHON 2026</span>
+          <span class="text-xs text-slate-400 mono">03 / ADAPTIVE PROCESSING</span>
+        </div>
+        <div class="py-6 space-y-2">
+          <h2 class="text-2xl md:text-4xl font-black text-white">
+            Different records need different levels of AI assistance
+          </h2>
+          <p class="text-sm text-slate-400">
+            The system changes its workflow based on document age and extraction confidence.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+          <!-- Older Patta -->
+          <div class="p-6 rounded-2xl bg-amber-950/20 border-2 border-amber-500/40 space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-black text-amber-400 tracking-wider">OLDER PATTA • 50+ YEARS</span>
+              <span class="text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-bold">Human-Scanned</span>
+            </div>
+            
+            <div class="space-y-3 text-xs text-slate-300">
+              <div class="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
+                <b class="text-amber-400 block mb-1">Authorized Documentation Officer:</b>
+                Performs physical scan of delicate parchment registers.
+              </div>
+              <div class="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
+                <b class="text-blue-400 block mb-1">Local AI Engine:</b>
+                Reads, reconstructs document structure and searches related legal text for missing pieces.
+              </div>
+              <div class="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
+                <b class="text-emerald-400 block mb-1">Human Officer Decision:</b>
+                Strictly verifies <u>names</u> • <u>places</u> • <u>areas</u> • <u>ambiguous legal facts</u>.
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Patta -->
+          <div class="p-6 rounded-2xl bg-emerald-950/20 border-2 border-emerald-500/40 space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-black text-emerald-400 tracking-wider">RECENT PATTA</span>
+              <span class="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-bold">AI-First</span>
+            </div>
+            
+            <div class="space-y-3 text-xs text-slate-300">
+              <div class="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
+                <b class="text-emerald-400 block mb-1">AI-First Processing:</b>
+                AI performs most extraction, structuring, field mapping and consistency checks automatically.
+              </div>
+              <div class="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
+                <b class="text-amber-400 block mb-1">Human Exception Handling:</b>
+                Only uncertain, conflicting or legally ambiguous fields are routed to an officer.
+              </div>
+              <div class="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
+                <b class="text-blue-400 block mb-1">High Throughput:</b>
+                Accelerates processing of modern computerized deeds by >90%.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 mt-6 flex items-center justify-between">
+        <span><b>Design Goal:</b> Automate routine records without removing vital human oversight.</span>
+        <span class="mono text-slate-400">4</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: 04 / DOCUMENT INTELLIGENCE -->
+    <div class="slide w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-3xl p-10 md:p-14 shadow-2xl flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <span class="text-xs font-bold text-amber-500 uppercase tracking-widest">SMART INDIA HACKATHON 2026</span>
+          <span class="text-xs text-slate-400 mono">04 / DOCUMENT INTELLIGENCE</span>
+        </div>
+        <div class="py-6 space-y-2">
+          <h2 class="text-2xl md:text-4xl font-black text-white">
+            When a record is incomplete, AI tries to reconstruct context
+          </h2>
+          <p class="text-sm text-slate-400">
+            The model does not invent missing legal facts. It searches for supporting evidence and sends unresolved ambiguity to a human.
+          </p>
+        </div>
+
+        <!-- Architecture Flow -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 my-4">
+          <div class="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-center space-y-2">
+            <span class="text-xs font-bold text-rose-400 block uppercase">PATTA SCAN</span>
+            <p class="text-[11px] text-slate-400">Missing / unclear / torn degraded text</p>
+          </div>
+          <div class="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-center space-y-2">
+            <span class="text-xs font-bold text-blue-400 block uppercase">AI SEARCH</span>
+            <p class="text-[11px] text-slate-400">Related records, gazettes, survey acts</p>
+          </div>
+          <div class="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-center space-y-2">
+            <span class="text-xs font-bold text-amber-400 block uppercase">MATCH</span>
+            <p class="text-[11px] text-slate-400">Candidate legal text + confidence score</p>
+          </div>
+          <div class="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-center space-y-2">
+            <span class="text-xs font-bold text-emerald-400 block uppercase">HUMAN</span>
+            <p class="text-[11px] text-slate-400">Resolve ambiguity or reject suggestion</p>
+          </div>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-amber-950/30 border border-amber-500/40 text-xs text-amber-200 space-y-1.5">
+          <b class="text-amber-400 uppercase tracking-wider block text-xs">CRITICAL LEGAL SAFEGUARD:</b>
+          <p>
+            Names, places and land areas are <u>never hallucinated</u>. When OCR confidence is low or text is missing, these fields are explicitly handed over to the documentation officer for sovereign legal verification.
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-6 text-xs text-slate-500 border-t border-slate-800">
+        <span>SIH 2026</span>
+        <span class="mono">5</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 6: 05 / SECURITY & TRACEABILITY -->
+    <div class="slide w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-3xl p-10 md:p-14 shadow-2xl flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <span class="text-xs font-bold text-amber-500 uppercase tracking-widest">SMART INDIA HACKATHON 2026</span>
+          <span class="text-xs text-slate-400 mono">05 / SECURITY & TRACEABILITY</span>
+        </div>
+        <div class="py-6 space-y-2">
+          <h2 class="text-2xl md:text-4xl font-black text-white">
+            A tamper-evident identity for every processed Patta
+          </h2>
+          <p class="text-sm text-slate-400">
+            A unique 30-character identifier using non-confusing alphanumeric symbols is stamped onto the document and stored.
+          </p>
+        </div>
+
+        <!-- Security ID Box from user image -->
+        <div class="p-6 rounded-2xl bg-slate-950 border border-slate-800 text-center space-y-2 my-2">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">DOCUMENT SECURITY ID</span>
+          <div class="text-lg md:text-2xl font-black text-red-500 mono tracking-widest bg-slate-900/80 p-3 rounded-xl border border-red-950 select-all">
+            7KQ-4X9-M2R-8TZ-P6C-3NW-H5D-9VA-2LM
+          </div>
+          <p class="text-[11px] text-slate-500">Base-30 charset (no 0, 1, I, O) • Cryptographically bound to image SHA-256 digest</p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 text-xs">
+          <div class="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
+            <b class="text-white block mb-1">STAMP:</b>
+            Identifier is physically applied to the processed Patta.
+          </div>
+          <div class="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
+            <b class="text-white block mb-1">STORE:</b>
+            Identifier is stored with the digital record and audit metadata.
+          </div>
+          <div class="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
+            <b class="text-white block mb-1">TRACE:</b>
+            Connects physical document, scan and digital database.
+          </div>
+          <div class="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
+            <b class="text-white block mb-1">LEGAL ACCESS:</b>
+            Civil courts can subpoena and verify immutable records.
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 mt-6 flex items-center justify-between">
+        <span><b>Security Goal:</b> Make unauthorized substitution or silent alteration immediately detectable and legally traceable.</span>
+        <span class="mono text-slate-400">6</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 7: 06 / INTEGRATION -->
+    <div class="slide w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-3xl p-10 md:p-14 shadow-2xl flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <span class="text-xs font-bold text-amber-500 uppercase tracking-widest">SMART INDIA HACKATHON 2026</span>
+          <span class="text-xs text-slate-400 mono">06 / INTEGRATION</span>
+        </div>
+        <div class="py-6 space-y-2">
+          <h2 class="text-2xl md:text-4xl font-black text-white">
+            Verified records become searchable and spatially connected
+          </h2>
+          <p class="text-sm text-slate-400">
+            The digital record connects to its survey parcel and is exposed through controlled access layers.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+          <!-- Flow -->
+          <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3 text-xs">
+            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+              <span class="font-bold text-white">RECORD</span>
+              <span class="text-slate-400">Patta / legacy document</span>
+            </div>
+            <div class="text-center text-slate-500 font-bold">↓</div>
+            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+              <span class="font-bold text-amber-400">VERIFIED DATA</span>
+              <span class="text-slate-400">Survey no. • area • village • status</span>
+            </div>
+            <div class="text-center text-slate-500 font-bold">↓</div>
+            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+              <span class="font-bold text-emerald-400">GIS PARCEL</span>
+              <span class="text-slate-400">Record ↔ mapped land parcel polygon</span>
+            </div>
+          </div>
+
+          <!-- Secure Digital Layer -->
+          <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5 text-xs">
+            <span class="text-xs font-bold text-blue-400 uppercase tracking-wider block">SECURE DIGITAL LAYER</span>
+            
+            <div class="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800">
+              <b class="text-white">Document Store:</b> Original scan + stamped processed copy.
+            </div>
+            <div class="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800">
+              <b class="text-white">Land Database:</b> 300+ indexed structured verified fields.
+            </div>
+            <div class="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800">
+              <b class="text-white">GIS / Spatial:</b> Cadastral parcel geometry + survey link.
+            </div>
+            <div class="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800">
+              <b class="text-white">Audit Trail:</b> Officer verification + timestamped changes.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 mt-6 flex items-center justify-between">
+        <span>Controlled access • Role-based permissions • Traceable cadastral changes</span>
+        <span class="mono text-slate-400">7</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 8: 07 / EXPECTED IMPACT -->
+    <div class="slide w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-3xl p-10 md:p-14 shadow-2xl flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <span class="text-xs font-bold text-amber-500 uppercase tracking-widest">SMART INDIA HACKATHON 2026</span>
+          <span class="text-xs text-slate-400 mono">07 / EXPECTED IMPACT</span>
+        </div>
+        <div class="py-6 space-y-2">
+          <h2 class="text-2xl md:text-4xl font-black text-white">
+            From physical record to trusted digital information
+          </h2>
+          <p class="text-sm text-slate-400">
+            A practical prototype that improves the hardest part: converting uncertain legacy evidence into usable records.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 my-4">
+          <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+            <span class="text-xs font-black text-blue-400 uppercase">FASTER</span>
+            <p class="text-[11px] text-slate-400">Less repetitive manual entry, batch automated Chitta extraction.</p>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+            <span class="text-xs font-black text-emerald-400 uppercase">MORE ACCURATE</span>
+            <p class="text-[11px] text-slate-400">Confidence-driven OCR with mandatory human sign-off on identity.</p>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+            <span class="text-xs font-black text-amber-400 uppercase">TRACEABLE</span>
+            <p class="text-[11px] text-slate-400">Every processed record has a Base-30 stamp and court audit trail.</p>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+            <span class="text-xs font-black text-purple-400 uppercase">SPATIAL</span>
+            <p class="text-[11px] text-slate-400">Verified records are instantly connected to mapped GIS parcels.</p>
+          </div>
+        </div>
+
+        <!-- Pipeline Bar -->
+        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-center mono font-bold text-xs text-slate-300">
+          PAPER  →  AI DIGITIZATION  →  VALIDATION  →  HUMAN VERIFICATION  →  GIS-LINKED RECORD
+        </div>
+      </div>
+
+      <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 mt-6 flex items-center justify-between">
+        <span><b>Proposed Prototype:</b> Practical, explainable and designed to work alongside existing government systems.</span>
+        <span class="mono text-slate-400">8</span>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- KEYBOARD SHORTCUTS HINT -->
+  <footer class="bg-slate-950/80 px-6 py-2 border-t border-slate-800/80 text-[11px] text-slate-500 flex items-center justify-between no-print flex-none">
+    <div>Use <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">←</kbd> and <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">→</kbd> arrow keys to navigate slides</div>
+    <div class="text-slate-400">Smart India Hackathon 2026 Presentation Package</div>
+  </footer>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 8;
+    const slides = document.querySelectorAll('.slide');
+
+    function showSlide(index) {
+      if (index < 1) index = 1;
+      if (index > totalSlides) index = totalSlides;
+      currentSlide = index;
+
+      slides.forEach((s, idx) => {
+        if (idx === currentSlide - 1) {
+          s.classList.add('active');
+        } else {
+          s.classList.remove('active');
+        }
+      });
+
+      document.getElementById('current-slide-num').textContent = currentSlide;
+      lucide.createIcons();
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        showSlide(currentSlide + 1);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        showSlide(currentSlide - 1);
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        prevSlide();
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  land-digitizer-app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: netcup-land-digitizer
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - HOST=0.0.0.0
+      # Connects to local Ollama if running on host or Docker
+      - OLLAMA_HOST=http://host.docker.internal:11434
+    volumes:
+      - land-data:/app/static/deed_images
+      - db-data:/app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+        reservations:
+          memory: 512M
+
+volumes:
+  land-data:
+  db-data:

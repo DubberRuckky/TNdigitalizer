@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intelligent Land Record Digitization & Validation System | SIH 2026</title>
+  
+  <!-- Tailwind CSS & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Leaflet GIS Map CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    #map { height: calc(100vh - 180px); min-height: 480px; }
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .security-badge { letter-spacing: 0.08em; }
+    .pulsing-marker {
+      animation: pulse-ring 1.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.05); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 flex flex-col h-screen overflow-hidden">
+
+  <!-- TOP HEADER -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 shadow-md flex-none z-30">
+    <div class="px-6 py-2.5 flex items-center justify-between">
+      
+      <!-- Logo & Title -->
+      <div class="flex items-center space-x-3.5">
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-amber-500 via-orange-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-orange-950/40">
+          <i data-lucide="shield-check" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-xs font-semibold px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">SIH 2026</span>
+            <span class="text-xs text-slate-400">GovTech Land Administration</span>
+          </div>
+          <h1 class="text-base font-bold tracking-tight text-white flex items-center space-x-2">
+            <span>Intelligent Land Record Digitization & Validation</span>
+          </h1>
+        </div>
+      </div>
+
+      <!-- Live Server & Officer Status -->
+      <div class="hidden lg:flex items-center space-x-4 text-xs">
+        <div class="bg-slate-800/80 px-3 py-1.5 rounded-md border border-slate-700 flex items-center space-x-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+          <span class="text-slate-300">Netcup Server: <b class="text-emerald-400">Online</b> (8GB / Infinite AI)</span>
+        </div>
+        <div class="bg-slate-800/80 px-3 py-1.5 rounded-md border border-slate-700 flex items-center space-x-2">
+          <i data-lucide="user-check" class="w-3.5 h-3.5 text-blue-400"></i>
+          <span class="text-slate-300">Officer ID: <b class="text-white mono">OFFICER-REV-0941</b></span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center space-x-3">
+        <!-- AI Engine & API Key Settings -->
+        <button onclick="openAISettingsModal()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 flex items-center space-x-1.5 transition" title="Configure Open-Source AI API Key / Model">
+          <i data-lucide="sparkles" class="w-4 h-4 text-emerald-400"></i>
+          <span class="hidden sm:inline">AI Engine & Keys</span>
+        </button>
+
+        <!-- Subpoena Lookup -->
+        <button onclick="openSubpoenaModal()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 flex items-center space-x-1.5 transition">
+          <i data-lucide="scale" class="w-4 h-4 text-amber-400"></i>
+          <span class="hidden sm:inline">Court Subpoena</span>
+        </button>
+
+        <!-- Big + Upload Button requested by user -->
+        <button onclick="openUploadModal()" class="px-4 py-2 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold flex items-center space-x-2 shadow-lg shadow-emerald-950/40 transition transform active:scale-95">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          <span>+ Upload New Patta / Deed</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- METRICS SUBBAR -->
+    <div class="bg-slate-950/60 border-t border-slate-800/60 px-6 py-1.5 text-xs text-slate-400 flex items-center justify-between overflow-x-auto">
+      <div class="flex items-center space-x-6">
+        <div>Total Digitized Records: <span id="stat-total" class="font-bold text-white mono">300</span></div>
+        <div class="flex items-center space-x-1">
+          <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+          <span>Older Patta (50+ Yrs): <b id="stat-legacy" class="text-amber-400 mono">120</b></span>
+        </div>
+        <div class="flex items-center space-x-1">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span>Recent Patta (AI-First): <b id="stat-recent" class="text-emerald-400 mono">180</b></span>
+        </div>
+        <div>Spatial Parcels Mapped: <b id="stat-spatial" class="text-blue-400 mono">300</b></div>
+        <div>Base-30 Security Stamped: <b class="text-emerald-300 mono">100%</b></div>
+      </div>
+      <div class="text-slate-400 hidden md:block">
+        Revenue Department Registry • Presumptive Preserved Title
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN SPLIT WORKSPACE -->
+  <div class="flex-1 flex overflow-hidden">
+    
+    <!-- LEFT PANEL: SEARCH & REGISTRY RECORDS LIST -->
+    <div class="w-full md:w-[460px] lg:w-[500px] flex-none border-r border-slate-200 bg-white flex flex-col h-full shadow-sm z-10">
+      
+      <!-- Search & Filters Header -->
+      <div class="p-3.5 border-b border-slate-200 bg-slate-50 space-y-2.5 flex-none">
+        
+        <!-- Search Input Bar -->
+        <div class="relative">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-slate-400"></i>
+          <input 
+            type="text" 
+            id="search-input" 
+            placeholder="Search by Citizen Name (e.g. Ramasamy, Kavitha), Survey No, Patta No, Base-30 ID..." 
+            class="w-full pl-10 pr-9 py-2 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition shadow-sm text-slate-800 placeholder-slate-400"
+            oninput="handleSearchDebounce()"
+          >
+          <button id="clear-search-btn" onclick="clearSearch()" class="hidden absolute right-3 top-2.5 text-slate-400 hover:text-slate-600">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Filter Chips -->
+        <div class="flex items-center space-x-2 text-xs">
+          <!-- District Filter -->
+          <select id="district-filter" onchange="loadRecords()" class="bg-white border border-slate-300 text-slate-700 text-xs rounded-md px-2 py-1 focus:ring-1 focus:ring-blue-500">
+            <option value="ALL">All Districts</option>
+            <option value="Coimbatore">Coimbatore</option>
+            <option value="Thanjavur">Thanjavur</option>
+            <option value="Kanchipuram">Kanchipuram</option>
+            <option value="Madurai">Madurai</option>
+            <option value="Salem">Salem</option>
+            <option value="Tiruchirappalli">Tiruchirappalli</option>
+          </select>
+
+          <!-- Category Filter -->
+          <select id="category-filter" onchange="loadRecords()" class="bg-white border border-slate-300 text-slate-700 text-xs rounded-md px-2 py-1 focus:ring-1 focus:ring-blue-500">
+            <option value="ALL">All Age Categories</option>
+            <option value="OLDER_PATTA_50_PLUS">Older (50+ Yrs - Human Scanned)</option>
+            <option value="RECENT_PATTA">Recent (AI-First)</option>
+          </select>
+
+          <span id="record-count-badge" class="ml-auto text-[11px] font-semibold text-slate-500 mono">
+            300 records
+          </span>
+        </div>
+
+      </div>
+
+      <!-- Scrollable Records List -->
+      <div id="records-list" class="flex-1 overflow-y-auto custom-scroll divide-y divide-slate-100 p-2 space-y-1.5">
+        <!-- Records injected by JavaScript -->
+        <div class="p-8 text-center text-slate-400 text-xs">Loading baked-in records...</div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT PANEL: INTERACTIVE GIS MAP & DEED DRAWER -->
+    <div class="flex-1 flex flex-col h-full relative overflow-hidden bg-slate-100">
+      
+      <!-- MAP CONTROLS FLOATING BAR -->
+      <div class="absolute top-4 left-4 z-[500] bg-white/95 backdrop-blur-md rounded-xl shadow-lg border border-slate-200/80 px-3.5 py-2 flex items-center space-x-3 text-xs">
+        <div class="flex items-center space-x-1.5 font-semibold text-slate-800">
+          <i data-lucide="map-pin" class="w-4 h-4 text-rose-500"></i>
+          <span>Cadastral GIS Layer</span>
+        </div>
+        <div class="h-4 w-px bg-slate-300"></div>
+        <div class="flex items-center space-x-3 text-[11px]">
+          <span class="flex items-center space-x-1">
+            <span class="w-2.5 h-2.5 rounded bg-amber-500"></span>
+            <span class="text-slate-600">50+ Yrs Legacy</span>
+          </span>
+          <span class="flex items-center space-x-1">
+            <span class="w-2.5 h-2.5 rounded bg-emerald-500"></span>
+            <span class="text-slate-600">Recent Patta</span>
+          </span>
+        </div>
+        <button onclick="resetMapView()" class="ml-2 text-blue-600 hover:text-blue-800 font-medium text-[11px]">
+          Reset Extent
+        </button>
+      </div>
+
+      <!-- LEAFLET MAP CONTAINER -->
+      <div id="map" class="w-full flex-1"></div>
+
+      <!-- BOTTOM DEED DETAIL DRAWER (Appears when a record is selected) -->
+      <div id="deed-drawer" class="absolute bottom-0 left-0 right-0 max-h-[58%] bg-white border-t border-slate-300 shadow-2xl z-[600] transition-transform duration-300 transform translate-y-full flex flex-col">
+        <!-- Drawer Header -->
+        <div class="px-5 py-3 bg-slate-900 text-white flex items-center justify-between flex-none">
+          <div class="flex items-center space-x-3">
+            <div id="drawer-cat-badge" class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500 text-slate-950 uppercase">
+              OLDER PATTA 50+ YRS
+            </div>
+            <h2 id="drawer-owner-title" class="font-bold text-sm tracking-tight text-white">
+              Ramasamy Gounder (ராமசாமி கவுண்டர்)
+            </h2>
+            <span id="drawer-patta-no" class="text-xs text-slate-300 mono bg-slate-800 px-2 py-0.5 rounded">
+              PATTA-1948-TN-4092
+            </span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="openFullDeedModal()" class="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white flex items-center space-x-1 transition">
+              <i data-lucide="zoom-in" class="w-3.5 h-3.5"></i>
+              <span>High-Res Stamped Deed</span>
+            </button>
+            <button onclick="closeDeedDrawer()" class="p-1 rounded text-slate-400 hover:text-white transition">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Drawer Content Grid -->
+        <div class="p-5 overflow-y-auto custom-scroll grid grid-cols-1 lg:grid-cols-12 gap-5 text-xs text-slate-700">
+          
+          <!-- Column 1: Stamped Deed Thumbnail & Security Seal -->
+          <div class="lg:col-span-4 space-y-3">
+            <div class="relative group cursor-pointer border border-slate-300 rounded-lg overflow-hidden shadow-sm bg-slate-100" onclick="openFullDeedModal()">
+              <img id="drawer-deed-img" src="" alt="Patta Deed" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300">
+              <div class="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white font-medium text-xs transition">
+                <i data-lucide="zoom-in" class="w-5 h-5 mr-1.5"></i> Click to Zoom Deed
+              </div>
+              <div class="absolute bottom-2 left-2 right-2 bg-slate-900/90 backdrop-blur-sm text-white px-2 py-1 rounded text-[10px] flex items-center justify-between">
+                <span>Tamper-Proof Stamp Applied</span>
+                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
+              </div>
+            </div>
+
+            <!-- Base-30 Security Badge Card -->
+            <div class="p-3 bg-amber-50/70 border border-amber-300 rounded-lg space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-[11px] text-amber-900 flex items-center space-x-1">
+                  <i data-lucide="shield-check" class="w-3.5 h-3.5 text-amber-700"></i>
+                  <span>BASE-30 SECURITY ID:</span>
+                </span>
+                <span class="text-[10px] bg-amber-200 text-amber-900 font-bold px-1.5 rounded">SUBPOENA READY</span>
+              </div>
+              <div id="drawer-security-id" class="mono font-bold text-xs text-red-700 bg-white p-2 rounded border border-amber-200 select-all tracking-wider text-center">
+                7KQ-4X9-M2R-8TZ-P6C-3NW-H5D-9VA-2LM
+              </div>
+              <div class="text-[10px] text-slate-500 truncate" id="drawer-hash">
+                SHA-256: d82fa7...
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2: Land Particulars & Extent -->
+          <div class="lg:col-span-4 space-y-2.5">
+            <h3 class="font-bold text-slate-900 text-xs uppercase tracking-wide border-b border-slate-200 pb-1 flex items-center space-x-1.5">
+              <i data-lucide="file-text" class="w-3.5 h-3.5 text-blue-600"></i>
+              <span>Land & Survey Particulars</span>
+            </h3>
+            
+            <div class="grid grid-cols-2 gap-2 text-[11px]">
+              <div>
+                <span class="text-slate-400 block">Survey / Sub-Division:</span>
+                <span id="drawer-survey-no" class="font-semibold text-slate-800">142/3A</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block">Total Extent:</span>
+                <span id="drawer-extent" class="font-semibold text-emerald-700">3 Acres 58 Cents</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block">Village & Taluk:</span>
+                <span id="drawer-location" class="font-semibold text-slate-800">Anamalai, Pollachi</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block">District:</span>
+                <span id="drawer-district" class="font-semibold text-slate-800">Coimbatore</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block">Classification:</span>
+                <span id="drawer-classification" class="font-semibold text-slate-800">Dry (Punjai)</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block">Original Year:</span>
+                <span id="drawer-year" class="font-semibold text-slate-800">1948 (78 Yrs Ago)</span>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-200">
+              <span class="text-slate-400 text-[10px] block font-medium">FOUR BOUNDARIES:</span>
+              <div class="bg-slate-50 p-2 rounded border border-slate-200 text-[11px] space-y-0.5">
+                <div><b>North:</b> <span id="drawer-boundary-n">Cart Track</span></div>
+                <div><b>South:</b> <span id="drawer-boundary-s">Survey 145</span></div>
+                <div><b>East:</b> <span id="drawer-boundary-e">Water Canal</span></div>
+                <div><b>West:</b> <span id="drawer-boundary-w">Murugan Land</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 3: Legal Text Reconstruction & Audit Trail -->
+          <div class="lg:col-span-4 space-y-2.5">
+            <h3 class="font-bold text-slate-900 text-xs uppercase tracking-wide border-b border-slate-200 pb-1 flex items-center space-x-1.5">
+              <i data-lucide="cpu" class="w-3.5 h-3.5 text-indigo-600"></i>
+              <span>Document Intelligence & Audit Log</span>
+            </h3>
+
+            <div>
+              <span class="text-slate-400 text-[10px] block font-medium">STATUTE BASE:</span>
+              <span id="drawer-statute" class="font-semibold text-slate-800 block text-[11px]">
+                Madras Estates (Abolition and Conversion into Ryotwari) Act XXVI of 1948
+              </span>
+            </div>
+
+            <div>
+              <span class="text-slate-400 text-[10px] block font-medium">RECONSTRUCTED BOILERPLATE:</span>
+              <p id="drawer-legal-text" class="bg-slate-50 p-2 rounded border border-slate-200 text-[10px] text-slate-600 max-h-24 overflow-y-auto leading-relaxed">
+                Settlement entry confirmed under Section 11...
+              </p>
+            </div>
+
+            <div>
+              <span class="text-slate-400 text-[10px] block font-medium">CHAIN OF CUSTODY AUDIT:</span>
+              <div id="drawer-audit-log" class="text-[10px] text-slate-500 space-y-1">
+                <!-- Injected -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- MODAL: + UPLOAD NEW PATTA / DEED (Key Hackathon Deliverable) -->
+  <div id="upload-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-[1000] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between flex-none">
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+            <i data-lucide="file-plus-2" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-white">Intelligent Patta Ingestion & Verification Workflow</h2>
+            <p class="text-xs text-slate-400">Adaptive AI Processing: 50+ Yrs Human-in-the-Loop vs Recent Automated Patta</p>
+          </div>
+        </div>
+        <button onclick="closeUploadModal()" class="text-slate-400 hover:text-white transition">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Steps Container) -->
+      <div class="flex-1 overflow-y-auto custom-scroll p-6 space-y-6">
+        
+        <!-- STEP 1: SELECT OR UPLOAD DEED -->
+        <div id="upload-step-1" class="space-y-4">
+          
+          <div class="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center space-x-1.5">
+            <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px]">1</span>
+            <span>Select Document to Ingest & Scan</span>
+          </div>
+
+          <!-- Quick Test Presets (Requested for illustrative & live demo) -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            
+            <div onclick="selectSampleAndUpload('sample-1948')" class="p-3 rounded-xl border-2 border-amber-300 bg-amber-50/50 hover:bg-amber-100/70 cursor-pointer transition flex flex-col justify-between group">
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-200 text-amber-900">78 YRS OLD</span>
+                  <i data-lucide="handshake" class="w-4 h-4 text-amber-700"></i>
+                </div>
+                <h4 class="font-bold text-xs text-slate-900 group-hover:text-amber-900">1948 Handwritten Ryotwari</h4>
+                <p class="text-[11px] text-slate-500 mt-1">Heavily aged document with iron-gall ink. Triggers mandatory Human Review of names & places.</p>
+              </div>
+              <button class="mt-3 w-full py-1 text-xs font-semibold rounded bg-amber-600 hover:bg-amber-700 text-white transition">
+                Load 1948 Legacy Sample
+              </button>
+            </div>
+
+            <div onclick="selectSampleAndUpload('sample-1968')" class="p-3 rounded-xl border-2 border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition flex flex-col justify-between group">
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-200 text-amber-900">58 YRS OLD</span>
+                  <i data-lucide="file-search" class="w-4 h-4 text-slate-600"></i>
+                </div>
+                <h4 class="font-bold text-xs text-slate-900 group-hover:text-blue-900">1968 Faded Inam Settlement</h4>
+                <p class="text-[11px] text-slate-500 mt-1">Faded register paper. AI repairs missing legal boilerplate statutory text.</p>
+              </div>
+              <button class="mt-3 w-full py-1 text-xs font-semibold rounded bg-slate-800 hover:bg-slate-700 text-white transition">
+                Load 1968 Sample
+              </button>
+            </div>
+
+            <div onclick="selectSampleAndUpload('sample-2022')" class="p-3 rounded-xl border-2 border-emerald-300 bg-emerald-50/50 hover:bg-emerald-100/70 cursor-pointer transition flex flex-col justify-between group">
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-200 text-emerald-900">4 YRS OLD</span>
+                  <i data-lucide="zap" class="w-4 h-4 text-emerald-600"></i>
+                </div>
+                <h4 class="font-bold text-xs text-slate-900 group-hover:text-emerald-900">2022 Modern Digital Patta</h4>
+                <p class="text-[11px] text-slate-500 mt-1">Modern computerized patta. Majorly handled by automated AI extraction.</p>
+              </div>
+              <button class="mt-3 w-full py-1 text-xs font-semibold rounded bg-emerald-600 hover:bg-emerald-700 text-white transition">
+                Load 2022 Digital Sample
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Or Drag & Drop Custom File Upload -->
+          <div class="relative border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-6 text-center cursor-pointer bg-slate-50/60 transition" onclick="document.getElementById('file-upload-input').click()">
+            <input type="file" id="file-upload-input" accept="image/*" class="hidden" onchange="handleFileUpload(event)">
+            <i data-lucide="upload-cloud" class="w-10 h-10 text-slate-400 mx-auto mb-2"></i>
+            <p class="text-xs font-semibold text-slate-700">Click to upload your own deed picture (Handwritten or Modern Patta)</p>
+            <p class="text-[11px] text-slate-400 mt-1">Supports JPEG, PNG, TIFF • Infinite queries on Netcup Local AI</p>
+          </div>
+
+        </div>
+
+        <!-- LOADING INDICATOR DURING SCANNING -->
+        <div id="scanning-indicator" class="hidden py-12 text-center space-y-4">
+          <div class="w-12 h-12 rounded-full border-4 border-blue-600 border-t-transparent animate-spin mx-auto"></div>
+          <div>
+            <h3 class="text-sm font-bold text-slate-800">Local AI Engine Scanning Document...</h3>
+            <p class="text-xs text-slate-500 mt-1">Multilingual OCR • Forensics Degradation Assessment • Historical Statutory Search</p>
+          </div>
+        </div>
+
+        <!-- STEP 2: REVIEW & HUMAN-IN-THE-LOOP VERIFICATION -->
+        <div id="upload-step-2" class="hidden space-y-5">
+          
+          <!-- Adaptive Flow Banner -->
+          <div id="workflow-alert-banner" class="p-4 rounded-xl border flex items-start space-x-3">
+            <i id="workflow-banner-icon" data-lucide="alert-triangle" class="w-5 h-5 flex-none mt-0.5"></i>
+            <div>
+              <div class="flex items-center space-x-2">
+                <h4 id="workflow-banner-title" class="font-bold text-xs uppercase tracking-wide">
+                  Older Patta (> 50 Years Old) - Official Human-In-The-Loop Activated
+                </h4>
+                <span id="workflow-age-tag" class="text-[10px] font-bold px-2 py-0.5 rounded bg-white/70">78 Years</span>
+              </div>
+              <p id="workflow-banner-desc" class="text-xs mt-1 leading-relaxed">
+                As per SIH protocol, physical scan performed by authorized officer. AI reconstructs legal statutory text, but citizen names, places, and land areas remain strictly under human decision control.
+              </p>
+            </div>
+          </div>
+
+          <!-- Side-by-side Review Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
+            
+            <!-- Left Side: Scanned Deed Preview & Security Stamp Preview -->
+            <div class="md:col-span-5 space-y-3">
+              <div class="border border-slate-200 rounded-lg overflow-hidden bg-slate-900">
+                <img id="review-preview-img" src="" alt="Deed Preview" class="w-full max-h-72 object-contain mx-auto">
+              </div>
+
+              <!-- Base-30 Stamp Preview Box -->
+              <div class="p-3 bg-red-50 border border-red-200 rounded-xl space-y-1">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-bold text-red-900 uppercase">Tamper-Proof Base-30 Identity</span>
+                  <span class="text-[10px] bg-red-200 text-red-900 px-1.5 py-0.2 rounded font-semibold">Subpoena ID</span>
+                </div>
+                <div id="review-security-id" class="mono text-xs font-bold text-red-700 bg-white p-2 rounded border border-red-200 text-center tracking-widest">
+                  7KQ-4X9-M2R-8TZ-P6C-3NW-H5D-9VA-2LM
+                </div>
+                <p class="text-[10px] text-slate-500">
+                  This 30-char Base-30 number will be physically stamped onto the patta and archived in Netcup SQLite DB for court subpoena inquiries.
+                </p>
+              </div>
+
+              <!-- Degradation Forensics Box -->
+              <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-xs">
+                <div class="font-semibold text-slate-800 flex items-center justify-between text-[11px]">
+                  <span>Forensic Degradation Score:</span>
+                  <span id="review-degrad-score" class="font-bold text-amber-700 mono">0.55 / 1.0</span>
+                </div>
+                <ul id="review-wear-list" class="text-[10px] text-slate-500 list-disc pl-4 space-y-0.5">
+                  <li>Faded iron-gall ink</li>
+                  <li>Paper foxing & edge degradation</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Right Side: Officer Verification Fields -->
+            <div class="md:col-span-7 space-y-3">
+              
+              <div class="text-xs font-bold text-slate-800 border-b border-slate-200 pb-1 flex items-center justify-between">
+                <span>Officer Data Verification & Approval</span>
+                <span class="text-[10px] text-blue-600 font-medium">Verify yellow fields before committing</span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 text-xs">
+                
+                <!-- Registered Citizen / Owner Name -->
+                <div class="col-span-2">
+                  <label class="block text-slate-600 font-semibold mb-1 flex items-center justify-between">
+                    <span>Citizen / Landholder Name (English + Regional) *</span>
+                    <span id="name-tag" class="text-[10px] bg-amber-100 text-amber-800 px-1.5 rounded">Human Decided</span>
+                  </label>
+                  <input type="text" id="verify-owner-name" class="w-full px-2.5 py-1.5 text-xs rounded border border-amber-400 bg-amber-50/30 focus:bg-white focus:ring-1 focus:ring-blue-500 font-medium">
+                </div>
+
+                <!-- Patta Number -->
+                <div>
+                  <label class="block text-slate-600 font-semibold mb-1">Patta Number</label>
+                  <input type="text" id="verify-patta-no" class="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white mono">
+                </div>
+
+                <!-- Survey No -->
+                <div>
+                  <label class="block text-slate-600 font-semibold mb-1">Survey No / Sub-division *</label>
+                  <input type="text" id="verify-survey-no" class="w-full px-2.5 py-1.5 text-xs rounded border border-amber-400 bg-amber-50/30 font-medium">
+                </div>
+
+                <!-- District -->
+                <div>
+                  <label class="block text-slate-600 font-semibold mb-1">District</label>
+                  <select id="verify-district" class="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 bg-white">
+                    <option value="Coimbatore">Coimbatore</option>
+                    <option value="Thanjavur">Thanjavur</option>
+                    <option value="Kanchipuram">Kanchipuram</option>
+                    <option value="Madurai">Madurai</option>
+                    <option value="Salem">Salem</option>
+                    <option value="Tiruchirappalli">Tiruchirappalli</option>
+                  </select>
+                </div>
+
+                <!-- Village & Taluk -->
+                <div>
+                  <label class="block text-slate-600 font-semibold mb-1">Revenue Village *</label>
+                  <input type="text" id="verify-village" class="w-full px-2.5 py-1.5 text-xs rounded border border-amber-400 bg-amber-50/30 font-medium">
+                </div>
+
+                <!-- Extent in Acres & Cents -->
+                <div>
+                  <label class="block text-slate-600 font-semibold mb-1">Land Extent (Acres & Cents) *</label>
+                  <input type="text" id="verify-extent" class="w-full px-2.5 py-1.5 text-xs rounded border border-amber-400 bg-amber-50/30 font-medium">
+                </div>
+
+                <!-- Original Year -->
+                <div>
+                  <label class="block text-slate-600 font-semibold mb-1">Original Registration Year</label>
+                  <input type="number" id="verify-year" class="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 mono">
+                </div>
+
+                <!-- Reconstructed Legal Boilerplate -->
+                <div class="col-span-2">
+                  <label class="block text-slate-600 font-semibold mb-1 flex items-center justify-between">
+                    <span>AI Reconstructed Legal Boilerplate (Historical Statutes)</span>
+                    <span class="text-[10px] text-emerald-600 font-semibold">Matched Historical Gazette</span>
+                  </label>
+                  <textarea id="verify-legal-text" rows="3" class="w-full px-2.5 py-1.5 text-[11px] rounded border border-slate-300 bg-slate-50 text-slate-700"></textarea>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- Bottom Action Buttons -->
+          <div class="pt-4 border-t border-slate-200 flex items-center justify-between">
+            <button onclick="resetUploadSteps()" class="px-4 py-2 rounded-lg border border-slate-300 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+              Back to Selection
+            </button>
+
+            <button onclick="commitVerifiedPatta()" class="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center space-x-2 shadow-lg shadow-emerald-950/20 transition transform active:scale-95">
+              <i data-lucide="stamp" class="w-4 h-4"></i>
+              <span>Apply Base-30 Stamp & Save to Netcup DB</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: COURT SUBPOENA & FORENSIC LOOKUP -->
+  <div id="subpoena-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-[1100] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-6 space-y-4 border border-slate-200">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div class="flex items-center space-x-2.5">
+          <i data-lucide="scale" class="w-5 h-5 text-amber-600"></i>
+          <h3 class="font-bold text-base text-slate-900">Judicial Court Subpoena Verification</h3>
+        </div>
+        <button onclick="closeSubpoenaModal()" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-600">
+        In case of civil land title disputes, courts can subpoena and verify the immutable Base-30 identity stamped on the physical Patta.
+      </p>
+
+      <div class="space-y-1.5">
+        <label class="block text-xs font-semibold text-slate-700">Enter Base-30 Security ID:</label>
+        <div class="flex space-x-2">
+          <input type="text" id="subpoena-input" placeholder="e.g. 7KQ-4X9-M2R-8TZ-P6C-3NW-H5D-9VA-2LM" class="flex-1 px-3 py-2 text-xs rounded-lg border border-slate-300 mono uppercase focus:ring-2 focus:ring-blue-500">
+          <button onclick="verifySubpoena()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold">
+            Verify
+          </button>
+        </div>
+      </div>
+
+      <!-- Result Card -->
+      <div id="subpoena-result" class="hidden p-4 rounded-xl border text-xs space-y-2">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: AI SETTINGS & OPEN SOURCE API KEY -->
+  <div id="ai-settings-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-[1150] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4 border border-slate-200">
+      
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div class="flex items-center space-x-2.5">
+          <i data-lucide="sparkles" class="w-5 h-5 text-emerald-600"></i>
+          <div>
+            <h3 class="font-bold text-base text-slate-900">Open-Source AI Engine & API Keys</h3>
+            <p class="text-[11px] text-slate-400">Configure infinite query vision provider or local engine</p>
+          </div>
+        </div>
+        <button onclick="closeAISettingsModal()" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Current Active Engine Status -->
+      <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
+        <div class="flex items-center justify-between">
+          <span class="text-slate-500 font-medium">Active Provider:</span>
+          <span id="active-ai-provider" class="font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">Checking...</span>
+        </div>
+        <div class="flex items-center justify-between text-[11px]">
+          <span class="text-slate-400">Model:</span>
+          <span id="active-ai-model" class="mono text-slate-700 font-semibold">Local Heuristic + Statutes</span>
+        </div>
+      </div>
+
+      <!-- Keys Input Form -->
+      <div class="space-y-3 text-xs">
+        
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
+            <span>Option 1: Groq Cloud API Key (Free Open Llama 3.2 Vision)</span>
+            <a href="https://console.groq.com/keys" target="_blank" class="text-blue-600 hover:underline text-[10px]">Get Free Key ↗</a>
+          </label>
+          <input type="password" id="input-groq-key" placeholder="gsk_..." class="w-full px-3 py-2 rounded-lg border border-slate-300 mono text-xs focus:ring-2 focus:ring-emerald-500">
+          <span class="text-[10px] text-slate-400 block mt-0.5">Free, high-speed open-source Meta Llama 3.2 11B Vision</span>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
+            <span>Option 2: OpenAI / OpenRouter / Custom Vision API Key</span>
+            <span class="text-slate-400 text-[10px]">Compatible Endpoint</span>
+          </label>
+          <input type="password" id="input-openai-key" placeholder="sk-..." class="w-full px-3 py-2 rounded-lg border border-slate-300 mono text-xs focus:ring-2 focus:ring-emerald-500">
+          <input type="text" id="input-openai-base" placeholder="https://openrouter.ai/api/v1" class="w-full mt-1 px-3 py-1.5 rounded-lg border border-slate-200 mono text-[11px] text-slate-600">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
+            <span>Option 3: Local Ollama Host</span>
+            <span class="text-emerald-600 font-bold text-[10px]">100% Free & Offline</span>
+          </label>
+          <input type="text" id="input-ollama-host" placeholder="http://localhost:11434" value="http://localhost:11434" class="w-full px-3 py-2 rounded-lg border border-slate-300 mono text-xs focus:ring-2 focus:ring-emerald-500">
+          <span class="text-[10px] text-slate-400 block mt-0.5">Runs on Netcup server without any external network calls</span>
+        </div>
+
+      </div>
+
+      <div class="pt-3 border-t border-slate-200 flex items-center justify-between">
+        <button onclick="closeAISettingsModal()" class="px-4 py-2 rounded-lg border border-slate-300 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
+          Cancel
+        </button>
+        <button onclick="saveAISettings()" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-950/20 transition">
+          Save & Activate Key
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: FULL HIGH-RES STAMPED DEED VIEWER -->
+  <div id="deed-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[1200] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] flex flex-col overflow-hidden border border-slate-200">
+      <div class="px-5 py-3 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <i data-lucide="stamp" class="w-5 h-5 text-amber-400"></i>
+          <div>
+            <h3 id="modal-deed-title" class="text-sm font-bold text-white">Stamped Deed Certificate</h3>
+            <p id="modal-deed-sub" class="text-[11px] text-slate-400 mono">Base-30 Security Stamp Verified</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-3">
+          <a id="modal-download-link" href="" download class="px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white flex items-center space-x-1.5">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span>Download</span>
+          </a>
+          <button onclick="closeFullDeedModal()" class="text-slate-400 hover:text-white">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+      <div class="flex-1 overflow-auto p-4 bg-slate-950 flex items-center justify-center">
+        <img id="modal-deed-img" src="" alt="High Res Patta" class="max-w-full max-h-[78vh] object-contain rounded shadow-lg">
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT APPLICATION LOGIC -->
+  <script>
+    // State variables
+    let map, geojsonLayer, selectedMarker;
+    let allRecords = [];
+    let currentUploadedData = null;
+    let searchDebounceTimer = null;
+
+    // Initialize Map and Load Records
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      initMap();
+      loadStats();
+      loadRecords();
+    });
+
+    function initMap() {
+      // Centered on Tamil Nadu
+      map = L.map('map', { zoomControl: false }).setView([11.1271, 78.6569], 8);
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+      // CartoDB Positron base tile layer
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+        maxZoom: 19
+      }).addTo(map);
+
+      loadSpatialGeoJSON();
+    }
+
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/stats');
+        const data = await res.json();
+        document.getElementById('stat-total').textContent = data.total_records;
+        document.getElementById('stat-legacy').textContent = data.legacy_50_plus;
+        document.getElementById('stat-recent').textContent = data.recent_records;
+        document.getElementById('stat-spatial').textContent = data.spatial_parcels_mapped;
+      } catch (e) {
+        console.error("Stats load error:", e);
+      }
+    }
+
+    async function loadSpatialGeoJSON() {
+      try {
+        const res = await fetch('/api/spatial');
+        const geojson = await res.json();
+
+        if (geojsonLayer) {
+          map.removeLayer(geojsonLayer);
+        }
+
+        geojsonLayer = L.geoJSON(geojson, {
+          style: (feature) => {
+            const isLegacy = feature.properties.category === 'OLDER_PATTA_50_PLUS';
+            return {
+              color: isLegacy ? '#d97706' : '#059669',
+              weight: 2,
+              fillColor: isLegacy ? '#f59e0b' : '#10b981',
+              fillOpacity: 0.45
+            };
+          },
+          onEachFeature: (feature, layer) => {
+            const p = feature.properties;
+            layer.bindTooltip(`
+              <div class="text-xs">
+                <b>${p.owner_name}</b><br>
+                <span>Survey No: ${p.survey_no}</span><br>
+                <span class="text-slate-500">${p.village}, ${p.district}</span>
+              </div>
+            `);
+            layer.on('click', () => {
+              selectRecordById(p.id);
+            });
+          }
+        }).addTo(map);
+
+      } catch (e) {
+        console.error("Spatial layer load error:", e);
+      }
+    }
+
+    async function loadRecords() {
+      const q = document.getElementById('search-input').value.trim();
+      const district = document.getElementById('district-filter').value;
+      const category = document.getElementById('category-filter').value;
+
+      let url = `/api/records?limit=300`;
+      if (q) url += `&q=${encodeURIComponent(q)}`;
+      if (district !== 'ALL') url += `&district=${encodeURIComponent(district)}`;
+      if (category !== 'ALL') url += `&category=${encodeURIComponent(category)}`;
+
+      const listContainer = document.getElementById('records-list');
+      listContainer.innerHTML = '<div class="p-8 text-center text-slate-400 text-xs">Searching records...</div>';
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        allRecords = data.records;
+
+        document.getElementById('record-count-badge').textContent = `${data.total} records`;
+        renderRecordsList(allRecords);
+      } catch (e) {
+        console.error("Records load error:", e);
+        listContainer.innerHTML = '<div class="p-8 text-center text-red-500 text-xs">Failed to load records.</div>';
+      }
+    }
+
+    function renderRecordsList(records) {
+      const container = document.getElementById('records-list');
+      if (!records || records.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 text-center text-slate-400 text-xs">
+            <i data-lucide="folder-x" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
+            No land records found matching your query.
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = records.map(r => {
+        const isLegacy = r.processing_category === 'OLDER_PATTA_50_PLUS';
+        return `
+          <div onclick="selectRecordById(${r.id})" class="p-3 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-200 cursor-pointer transition flex items-start space-x-3 group">
+            
+            <!-- Thumbnail -->
+            <div class="w-14 h-16 rounded overflow-hidden flex-none bg-slate-100 border border-slate-200 relative">
+              <img src="${r.image_path}" alt="Deed" class="w-full h-full object-cover">
+              <span class="absolute bottom-0 inset-x-0 bg-slate-900/80 text-[8px] text-white text-center font-bold">
+                ${r.record_year}
+              </span>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between mb-0.5">
+                <span class="text-[10px] font-bold px-1.5 py-0.2 rounded ${isLegacy ? 'bg-amber-100 text-amber-900 border border-amber-200' : 'bg-emerald-100 text-emerald-900 border border-emerald-200'}">
+                  ${isLegacy ? '50+ Yrs Legacy' : 'Recent Patta'}
+                </span>
+                <span class="text-[10px] text-slate-400 mono">${r.survey_no}</span>
+              </div>
+              <h4 class="font-bold text-xs text-slate-800 truncate group-hover:text-blue-600 transition">
+                ${r.owner_name}
+              </h4>
+              <p class="text-[11px] text-slate-500 truncate">
+                ${r.village}, ${r.taluk} (${r.district}) • <b class="text-emerald-700">${r.extent_acres_cents}</b>
+              </p>
+              <div class="text-[10px] text-red-600 mono truncate font-medium mt-1">
+                ID: ${r.security_id}
+              </div>
+            </div>
+
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    async function selectRecordById(recordId) {
+      try {
+        const res = await fetch(`/api/records/${recordId}`);
+        const record = await res.json();
+        openDeedDrawer(record);
+
+        // Center map on parcel
+        if (record.latitude && record.longitude) {
+          map.flyTo([record.latitude, record.longitude], 16, { duration: 1.2 });
+        }
+      } catch (e) {
+        console.error("Select record error:", e);
+      }
+    }
+
+    function openDeedDrawer(record) {
+      const drawer = document.getElementById('deed-drawer');
+      const isLegacy = record.processing_category === 'OLDER_PATTA_50_PLUS';
+
+      document.getElementById('drawer-cat-badge').textContent = isLegacy ? `OLDER PATTA (${record.age_years} YRS) - OFFICER VERIFIED` : `RECENT PATTA (${record.age_years} YRS) - AI AUTOMATED`;
+      document.getElementById('drawer-cat-badge').className = `px-2 py-0.5 rounded text-[11px] font-bold ${isLegacy ? 'bg-amber-500 text-slate-950' : 'bg-emerald-500 text-white'} uppercase`;
+
+      document.getElementById('drawer-owner-title').textContent = record.owner_name;
+      document.getElementById('drawer-patta-no').textContent = record.patta_no;
+      document.getElementById('drawer-deed-img').src = record.image_path;
+      document.getElementById('drawer-security-id').textContent = record.security_id;
+      document.getElementById('drawer-hash').textContent = `SHA-256: ${record.image_hash}`;
+
+      document.getElementById('drawer-survey-no').textContent = record.survey_no;
+      document.getElementById('drawer-extent').textContent = record.extent_acres_cents;
+      document.getElementById('drawer-location').textContent = `${record.village}, ${record.taluk}`;
+      document.getElementById('drawer-district').textContent = record.district;
+      document.getElementById('drawer-classification').textContent = record.land_classification;
+      document.getElementById('drawer-year').textContent = `${record.record_year} (${record.age_years} Yrs Ago)`;
+
+      document.getElementById('drawer-boundary-n').textContent = record.north_boundary || 'N/A';
+      document.getElementById('drawer-boundary-s').textContent = record.south_boundary || 'N/A';
+      document.getElementById('drawer-boundary-e').textContent = record.east_boundary || 'N/A';
+      document.getElementById('drawer-boundary-w').textContent = record.west_boundary || 'N/A';
+
+      document.getElementById('drawer-statute').textContent = record.legal_statute;
+      document.getElementById('drawer-legal-text').textContent = record.legal_text_reconstructed;
+
+      // Audit log render
+      const auditContainer = document.getElementById('drawer-audit-log');
+      if (record.audit_log && record.audit_log.length > 0) {
+        auditContainer.innerHTML = record.audit_log.map(a => `
+          <div class="border-l-2 border-blue-500 pl-2">
+            <span class="font-bold text-slate-700">${a.action}</span> (${a.officer_id})<br>
+            <span class="text-slate-400 text-[9px]">${a.timestamp}</span>
+          </div>
+        `).join('');
+      } else {
+        auditContainer.innerHTML = `<span class="text-slate-400">Archived under Section 65B Presumption of Law.</span>`;
+      }
+
+      drawer.classList.remove('translate-y-full');
+    }
+
+    function closeDeedDrawer() {
+      document.getElementById('deed-drawer').classList.add('translate-y-full');
+    }
+
+    function openFullDeedModal() {
+      const src = document.getElementById('drawer-deed-img').src;
+      const title = document.getElementById('drawer-owner-title').textContent;
+      const pattaNo = document.getElementById('drawer-patta-no').textContent;
+
+      document.getElementById('modal-deed-img').src = src;
+      document.getElementById('modal-deed-title').textContent = title;
+      document.getElementById('modal-deed-sub').textContent = `${pattaNo} • Cryptographically Stamped`;
+      document.getElementById('modal-download-link').href = src;
+      document.getElementById('deed-modal').classList.remove('hidden');
+    }
+
+    function closeFullDeedModal() {
+      document.getElementById('deed-modal').classList.add('hidden');
+    }
+
+    function handleSearchDebounce() {
+      clearTimeout(searchDebounceTimer);
+      const val = document.getElementById('search-input').value.trim();
+      document.getElementById('clear-search-btn').classList.toggle('hidden', val.length === 0);
+      searchDebounceTimer = setTimeout(loadRecords, 300);
+    }
+
+    function clearSearch() {
+      document.getElementById('search-input').value = '';
+      document.getElementById('clear-search-btn').classList.add('hidden');
+      loadRecords();
+    }
+
+    function resetMapView() {
+      map.setView([11.1271, 78.6569], 8);
+    }
+
+    // --- UPLOAD & INGESTION MODAL LOGIC ---
+    function openUploadModal() {
+      resetUploadSteps();
+      document.getElementById('upload-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeUploadModal() {
+      document.getElementById('upload-modal').classList.add('hidden');
+    }
+
+    function resetUploadSteps() {
+      document.getElementById('upload-step-1').classList.remove('hidden');
+      document.getElementById('scanning-indicator').classList.add('hidden');
+      document.getElementById('upload-step-2').classList.add('hidden');
+      currentUploadedData = null;
+    }
+
+    async function selectSampleAndUpload(sampleId) {
+      document.getElementById('upload-step-1').classList.add('hidden');
+      document.getElementById('scanning-indicator').classList.remove('hidden');
+
+      const formData = new FormData();
+      formData.append('sample_id', sampleId);
+      formData.append('officer_id', 'OFFICER-REV-0941');
+
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        currentUploadedData = data;
+        showReviewStep(data);
+      } catch (e) {
+        console.error("Upload error:", e);
+        alert("Failed to process document through Local AI");
+        resetUploadSteps();
+      }
+    }
+
+    async function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      document.getElementById('upload-step-1').classList.add('hidden');
+      document.getElementById('scanning-indicator').classList.remove('hidden');
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('officer_id', 'OFFICER-REV-0941');
+
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        currentUploadedData = data;
+        showReviewStep(data);
+      } catch (e) {
+        console.error("Upload error:", e);
+        alert("Failed to process uploaded file");
+        resetUploadSteps();
+      }
+    }
+
+    function showReviewStep(data) {
+      document.getElementById('scanning-indicator').classList.add('hidden');
+      document.getElementById('upload-step-2').classList.remove('hidden');
+
+      const ai = data.ai_result;
+      const isLegacy = ai.is_older_than_50;
+
+      // Banner style
+      const banner = document.getElementById('workflow-alert-banner');
+      const bannerIcon = document.getElementById('workflow-banner-icon');
+      const bannerTitle = document.getElementById('workflow-banner-title');
+      const bannerDesc = document.getElementById('workflow-banner-desc');
+      const ageTag = document.getElementById('workflow-age-tag');
+
+      ageTag.textContent = `${ai.doc_age} Years Old`;
+
+      if (isLegacy) {
+        banner.className = 'p-4 rounded-xl border border-amber-300 bg-amber-50 text-amber-900 flex items-start space-x-3';
+        bannerIcon.className = 'w-5 h-5 flex-none mt-0.5 text-amber-700';
+        bannerTitle.textContent = 'OLDER PATTA (50+ YEARS) - OFFICER HUMAN-IN-THE-LOOP REQUIRED';
+        bannerDesc.textContent = 'Under SIH protocol, AI reconstructs legal statutory text, but citizen names, places, and land areas remain strictly under authorized officer review.';
+        document.getElementById('name-tag').className = 'text-[10px] bg-amber-200 text-amber-900 font-bold px-1.5 rounded';
+        document.getElementById('name-tag').textContent = 'Human Decision Required';
+      } else {
+        banner.className = 'p-4 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 flex items-start space-x-3';
+        bannerIcon.className = 'w-5 h-5 flex-none mt-0.5 text-emerald-700';
+        bannerTitle.textContent = 'RECENT PATTA - AI-FIRST AUTOMATED EXTRACTION';
+        bannerDesc.textContent = 'Automated high-confidence extraction completed. Ready for immediate confirmation and Base-30 security stamping.';
+        document.getElementById('name-tag').className = 'text-[10px] bg-emerald-200 text-emerald-900 font-bold px-1.5 rounded';
+        document.getElementById('name-tag').textContent = 'High Confidence';
+      }
+
+      // Populate preview image & Base-30 security ID
+      document.getElementById('review-preview-img').src = data.temp_preview_image;
+      document.getElementById('review-security-id').textContent = data.preview_security_id;
+
+      // Forensics
+      document.getElementById('review-degrad-score').textContent = `${ai.forensics.degradation_score} / 1.0`;
+      const wearList = document.getElementById('review-wear-list');
+      wearList.innerHTML = ai.forensics.wear_indicators.map(w => `<li>${w}</li>`).join('') || '<li>Document physically well preserved</li>';
+
+      // Populate form
+      const ext = ai.extracted_fields;
+      document.getElementById('verify-owner-name').value = ext.candidate_owner_name || '';
+      document.getElementById('verify-patta-no').value = ext.patta_no || '';
+      document.getElementById('verify-survey-no').value = ext.survey_no || '';
+      document.getElementById('verify-district').value = ext.district || 'Coimbatore';
+      document.getElementById('verify-village').value = ext.village || '';
+      document.getElementById('verify-extent').value = ext.extent_acres_cents || '1 Acre 50 Cents';
+      document.getElementById('verify-year').value = ai.detected_year || 1960;
+      document.getElementById('verify-legal-text').value = ai.legal_repair.reconstructed_boilerplate || '';
+
+      lucide.createIcons();
+    }
+
+    async function commitVerifiedPatta() {
+      if (!currentUploadedData) return;
+
+      const payload = {
+        temp_preview_image: currentUploadedData.temp_preview_image,
+        security_id: currentUploadedData.preview_security_id,
+        patta_no: document.getElementById('verify-patta-no').value,
+        survey_no: document.getElementById('verify-survey-no').value,
+        sub_division: document.getElementById('verify-survey-no').value.split('/')[1] || '1A',
+        owner_name: document.getElementById('verify-owner-name').value,
+        relative_name: currentUploadedData.ai_result.extracted_fields.relative_name || 'S/o Relative',
+        district: document.getElementById('verify-district').value,
+        taluk: currentUploadedData.ai_result.extracted_fields.taluk || 'Taluk Center',
+        village: document.getElementById('verify-village').value,
+        extent_acres_cents: document.getElementById('verify-extent').value,
+        land_classification: currentUploadedData.ai_result.extracted_fields.land_classification || 'Dry (Punjai)',
+        record_year: parseInt(document.getElementById('verify-year').value) || 2020,
+        scanner_officer_id: 'OFFICER-REV-0941',
+        legal_statute: currentUploadedData.ai_result.legal_repair.matched_statutes[0] || 'Tamil Nadu Land Revenue Assessment Act',
+        legal_text_reconstructed: document.getElementById('verify-legal-text').value,
+        north_boundary: currentUploadedData.ai_result.extracted_fields.north_boundary || 'Public Road',
+        south_boundary: currentUploadedData.ai_result.extracted_fields.south_boundary || 'Boundary Survey',
+        east_boundary: currentUploadedData.ai_result.extracted_fields.east_boundary || 'Agricultural Land',
+        west_boundary: currentUploadedData.ai_result.extracted_fields.west_boundary || 'Water Canal',
+        confidence_score: currentUploadedData.ai_result.confidence_score
+      };
+
+      try {
+        const res = await fetch('/api/confirm_verification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        
+        if (result.success) {
+          closeUploadModal();
+          alert(`Success! Patta digitized, stamped with Base-30 ID (${result.security_id}), and stored in Netcup database.`);
+          await loadStats();
+          await loadSpatialGeoJSON();
+          await loadRecords();
+          selectRecordById(result.record_id);
+        } else {
+          alert('Error committing verification: ' + JSON.stringify(result));
+        }
+      } catch (e) {
+        console.error("Commit error:", e);
+        alert("Failed to commit record: " + e.message);
+      }
+    }
+
+    // --- SUBPOENA FORENSICS MODAL ---
+    function openSubpoenaModal() {
+      document.getElementById('subpoena-result').classList.add('hidden');
+      document.getElementById('subpoena-input').value = '';
+      document.getElementById('subpoena-modal').classList.remove('hidden');
+    }
+
+    function closeSubpoenaModal() {
+      document.getElementById('subpoena-modal').classList.add('hidden');
+    }
+
+    async function verifySubpoena() {
+      const code = document.getElementById('subpoena-input').value.trim();
+      if (!code) {
+        alert("Please enter a Base-30 Security ID");
+        return;
+      }
+
+      const resBox = document.getElementById('subpoena-result');
+      resBox.className = 'p-4 rounded-xl border bg-slate-50 text-slate-800 text-xs space-y-2';
+      resBox.innerHTML = '<div class="text-slate-500">Querying Court Forensics Vault...</div>';
+      resBox.classList.remove('hidden');
+
+      try {
+        const res = await fetch(`/api/subpoena/verify?security_id=${encodeURIComponent(code)}`);
+        const data = await res.json();
+
+        if (!data.found) {
+          resBox.className = 'p-4 rounded-xl border border-red-300 bg-red-50 text-red-900 text-xs space-y-1.5';
+          resBox.innerHTML = `
+            <div class="font-bold flex items-center space-x-1.5">
+              <i data-lucide="alert-triangle" class="w-4 h-4 text-red-700"></i>
+              <span>RECORD NOT FOUND - FRAUD ALERT</span>
+            </div>
+            <p>${data.message}</p>
+          `;
+        } else {
+          const rec = data.record;
+          resBox.className = 'p-4 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 text-xs space-y-2';
+          resBox.innerHTML = `
+            <div class="font-bold flex items-center justify-between">
+              <span class="flex items-center space-x-1.5">
+                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-700"></i>
+                <span>${data.verification_result}</span>
+              </span>
+              <span class="text-[10px] bg-emerald-200 text-emerald-900 px-1.5 py-0.5 rounded font-bold">SEC 65B COMPLIANT</span>
+            </div>
+            <div class="border-t border-emerald-200 pt-2 grid grid-cols-2 gap-2 text-[11px]">
+              <div><b>Landholder:</b> ${rec.owner_name}</div>
+              <div><b>Survey No:</b> ${rec.survey_no}</div>
+              <div><b>Patta No:</b> ${rec.patta_no}</div>
+              <div><b>Registration Year:</b> ${rec.record_year}</div>
+            </div>
+            <div class="mono text-[10px] text-slate-600 truncate">
+              Image SHA-256 Digest: ${rec.image_hash}
+            </div>
+            <p class="text-[10px] text-slate-500 italic">
+              Verified by District Revenue Court Subpoena on ${data.verified_at}
+            </p>
+          `;
+        }
+        lucide.createIcons();
+      } catch (e) {
+        console.error("Subpoena error:", e);
+        resBox.innerHTML = `<span class="text-red-600">Verification request error.</span>`;
+      }
+    }
+
+    // --- AI SETTINGS MODAL LOGIC ---
+    async function openAISettingsModal() {
+      document.getElementById('ai-settings-modal').classList.remove('hidden');
+      await loadAISettings();
+    }
+
+    function closeAISettingsModal() {
+      document.getElementById('ai-settings-modal').classList.add('hidden');
+    }
+
+    async function loadAISettings() {
+      try {
+        const res = await fetch('/api/settings/ai');
+        const data = await res.json();
+        document.getElementById('active-ai-provider').textContent = data.provider;
+        document.getElementById('active-ai-model').textContent = `${data.model} (${data.masked_key})`;
+      } catch (e) {
+        console.error("AI settings load error:", e);
+      }
+    }
+
+    async function saveAISettings() {
+      const groqKey = document.getElementById('input-groq-key').value.trim();
+      const openaiKey = document.getElementById('input-openai-key').value.trim();
+      const openaiBase = document.getElementById('input-openai-base').value.trim();
+      const ollamaHost = document.getElementById('input-ollama-host').value.trim();
+
+      const payload = {};
+      if (groqKey) payload.groq_api_key = groqKey;
+      if (openaiKey) payload.openai_api_key = openaiKey;
+      if (openaiBase) payload.openai_api_base = openaiBase;
+      if (ollamaHost) payload.ollama_host = ollamaHost;
+
+      try {
+        const res = await fetch('/api/settings/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert("Success! " + data.message + " Active Engine: " + data.current_status.provider);
+          closeAISettingsModal();
+        } else {
+          alert("Failed to update AI settings");
+        }
+      } catch (e) {
+        console.error("Save AI settings error:", e);
+        alert("Error saving API keys: " + e.message);
+      }
+    }
+  </script>
+</body>
+</html>

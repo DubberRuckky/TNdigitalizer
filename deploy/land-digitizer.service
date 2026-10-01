@@ -1,0 +1,21 @@
+[Unit]
+Description=Intelligent Land Record Digitization and Validation System (SIH 2026)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/user/land-digitizer
+ExecStart=/home/user/land-digitizer/venv/bin/python run_server.py
+Restart=always
+RestartSec=3
+Environment=PORT=8000
+Environment=HOST=127.0.0.1
+Environment=PYTHONUNBUFFERED=1
+
+# Netcup 8GB VPS Resource Safety Bounds
+MemoryMax=3.5G
+MemoryHigh=2.8G
+
+[Install]
+WantedBy=multi-user.target
